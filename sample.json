@@ -1,5 +1,5 @@
-// sample response from the pricing api
-{
+{   
+    "_comment": "sample response from the pricing api",
     "ETH": {
         "decimals": "8",
         "prices": [
