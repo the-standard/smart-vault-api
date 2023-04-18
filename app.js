@@ -13,7 +13,6 @@ const dataPoints = 48;
 const intervalMins = minsPerDay / dataPoints;
 
 let prices = {};
-let i = 0;
 
 app.get('/', async (_, res) => {
   res.json(prices);
@@ -24,7 +23,7 @@ const addPriceToData = token => {
   const chainlinkContract = new web3.eth.Contract(contracts.chainlink.abi, token.clAddr);
   chainlinkContract.methods.latestRoundData().call().then(data => {
     if (prices[symbol]) {
-      prices[symbol].prices = [ ...prices[symbol].prices, data.answer + i++ ].splice(-dataPoints, dataPoints);
+      prices[symbol].prices = [ ...prices[symbol].prices, data.answer ].splice(-dataPoints, dataPoints);
     } else {
       chainlinkContract.methods.decimals().call().then(dec => {
         prices[symbol] = {
