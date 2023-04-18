@@ -1,7 +1,6 @@
-const express = require('express');
-const app = express();
 const port = 3000 || process.env.PORT;
 const Web3 = require('web3');
+const http = require('http');
 const fs = require('fs');
 require('dotenv').config();
 const schedule = require('node-schedule');
@@ -11,10 +10,6 @@ const contracts = JSON.parse(fs.readFileSync('contracts.json', { encoding: 'utf8
 const tokenManagerContract = new web3.eth.Contract(contracts.tokenManager, process.env.TOKEN_MANAGER_ADDRESS);
 
 let prices = {};
-
-app.get('/', async (_, res) => {
-  res.json(prices);
-});
 
 const addPriceToData = (token, ts) => {
   const symbol = web3.utils.hexToUtf8(token.symbol);
@@ -50,6 +45,11 @@ schedule.scheduleJob(`0,30 * * * *`, _ => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Simple Price Feed app listening on port ${port}`);
+const server = http.createServer((req, res) => {
+  console.log(`${new Date().toISOString()} | ${req.url}`);
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(prices));
 });
+
+server.listen(port);
+console.log(`Simple Price Feed API server listening on ${port}`)
