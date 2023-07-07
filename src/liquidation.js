@@ -1,23 +1,18 @@
 const schedule = require('node-schedule');
 const { getContract } = require("./contractFactory");
 const { ethers } = require('ethers');
-
-const rpcs = {
-  sepolia: `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`,
-  arbitrum_goerli: 'https://goerli-rollup.arbitrum.io/rpc'
-}
+const { getNetworks } = require('./networks');
 
 const scheduleLiquidation = async _ => {
-  const networks = ['sepolia', 'arbitrum_goerli']
-  networks.forEach(async network => {
+  getNetworks().forEach(async network => {
     schedule.scheduleJob('*/5 * * * *', async _ => {
       try {
-        const provider = new ethers.getDefaultProvider(rpcs[network])
+        const provider = new ethers.getDefaultProvider(network.rpc)
         const wallet = new ethers.Wallet(process.env.WALLET_KEY, provider);
-        await (await getContract(network, 'SmartVaultManager')).connect(wallet).liquidateVaults()
-        console.log(network, 'vault-liquidated');
+        await (await getContract(network.name, 'SmartVaultManager')).connect(wallet).liquidateVaults()
+        console.log(network.name, 'vault-liquidated');
       } catch(e) {
-        console.log(network, e.reason)
+        console.log(network.name, e.reason)
       }
     });
   });

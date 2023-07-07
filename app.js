@@ -5,7 +5,7 @@ const { scheduleLiquidation } = require('./src/liquidation');
 const { getPrices, schedulePricing } = require('./src/pricing');
 
 scheduleLiquidation();
-// schedulePricing();
+schedulePricing();
 
 const server = http.createServer((req, res) => {
   console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);

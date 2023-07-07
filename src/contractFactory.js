@@ -4,7 +4,7 @@ const https = require('https');
 const contracts = JSON.parse(fs.readFileSync('contracts.json', { encoding: 'utf8' }));
 const addressesJSONURL = 'https://raw.githubusercontent.com/the-standard/smart-vault/main/docs/addresses.json';
 
-const getAddressOf = async (network, contractName) => {
+const getAddressOf = async (networkName, contractName) => {
   return new Promise(resolve => {
     https.get(addressesJSONURL, res => {
       let json = '';
@@ -14,15 +14,15 @@ const getAddressOf = async (network, contractName) => {
       });
 
       res.on('end', _ => {
-        resolve(JSON.parse(json)[network][contractName]);
+        resolve(JSON.parse(json)[networkName][contractName]);
       });
     });
   });
 };
 
-const getContract = async (network, contractName, address) => {
+const getContract = async (networkName, contractName, address) => {
   if (!address) {
-    address = await getAddressOf(network, contractName);
+    address = await getAddressOf(networkName, contractName);
   }
   return new ethers.Contract(address, contracts[contractName]);
 };
