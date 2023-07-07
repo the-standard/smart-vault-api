@@ -1,5 +1,5 @@
 {
-    "tokenManager": [
+    "TokenManager": [
         {
             "inputs": [],
             "name": "getAcceptedTokens",
@@ -41,7 +41,7 @@
             "type": "function"
         }
     ],
-    "chainlink": [
+    "Chainlink": [
         {
             "inputs": [],
             "name": "decimals",
