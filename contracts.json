@@ -88,5 +88,14 @@
             "stateMutability": "view",
             "type": "function"
         }
+    ],
+    "SmartVaultManager": [
+        {
+          "inputs": [],
+          "name": "liquidateVaults",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        }
     ]
 }
