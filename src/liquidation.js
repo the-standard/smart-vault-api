@@ -8,7 +8,7 @@ const scheduleLiquidation = async _ => {
     schedule.scheduleJob('*/5 * * * *', async _ => {
       try {
         const provider = new ethers.getDefaultProvider(network.rpc)
-        const wallet = new ethers.Wallet(process.env.WALLET_KEY, provider);
+        const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
         await (await getContract(network.name, 'SmartVaultManager')).connect(wallet).liquidateVaults()
         console.log(network.name, 'vault-liquidated');
       } catch(e) {

@@ -47,7 +47,7 @@ const schedulePricing = async _ => {
     prices[network.name] = {};
     schedule.scheduleJob(`${delay} */30 * * * *`, async _ => {
       const provider = new ethers.getDefaultProvider(network.rpc)
-      wallet = new ethers.Wallet(process.env.WALLET_KEY, provider);
+      wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
       const ts = Math.floor(new Date() / 1000);
       (await getContract(network.name, 'TokenManager')).connect(wallet).getAcceptedTokens().then(tokens => {
         tokens.map(token => {
