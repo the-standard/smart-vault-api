@@ -11,6 +11,7 @@ env:
   CLOUDSDK_COMPUTE_ZONE: europe-west2-c
   DEPLOYMENT: smart-vault-helper
   NAMESPACE: default
+  USE_GKE_GCLOUD_AUTH_PLUGIN: true
 
 jobs:
 
