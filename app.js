@@ -1,4 +1,4 @@
-const port = 3000 || process.env.PORT;
+const port =   process.env.PORT || 3000;
 const http = require('http');
 require('dotenv').config();
 const { scheduleLiquidation } = require('./src/liquidation');
