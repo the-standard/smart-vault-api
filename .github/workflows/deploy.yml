@@ -9,7 +9,7 @@ env:
   PROJECT_NAME: ${{ secrets.GKE_PROJECT }}
   CLUSTER_NAME: cluster-1
   CLOUDSDK_COMPUTE_ZONE: europe-west2-c
-  DEPLOYMENT: smart-vault-helper
+  DEPLOYMENT: smart-vault-api
   NAMESPACE: default
 
 jobs:
