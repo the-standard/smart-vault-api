@@ -13,7 +13,14 @@ const server = http.createServer((req, res) => {
     res.statusCode = 200;
     res.end();
   } else {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const headers = {
+      'Access-Control-Allow-Origin': '*', /* @dev First, read about security */
+      'Access-Control-Allow-Methods': 'OPTIONS, GET',
+      'Access-Control-Max-Age': 2592000, // 30 days
+      'Content-Type': 'application/json'
+      /** add other headers as per requirement */
+    };
+    res.writeHead(200, headers);
     res.end(JSON.stringify(getPrices()));
   }
 });
