@@ -1,4 +1,4 @@
-const port =   process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 const http = require('http');
 require('dotenv').config();
 const { scheduleLiquidation } = require('./src/liquidation');
@@ -14,11 +14,10 @@ const server = http.createServer((req, res) => {
     res.end();
   } else {
     const headers = {
-      'Access-Control-Allow-Origin': '*', /* @dev First, read about security */
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'OPTIONS, GET',
-      'Access-Control-Max-Age': 2592000, // 30 days
+      'Access-Control-Max-Age': 2592000,
       'Content-Type': 'application/json'
-      /** add other headers as per requirement */
     };
     res.writeHead(200, headers);
     res.end(JSON.stringify(getPrices()));
