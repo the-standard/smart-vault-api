@@ -5,7 +5,7 @@ const { getNetwork } = require('./networks');
 
 const scheduleLiquidation = async _ => {
   const network = getNetwork('arbitrum');
-  schedule.scheduleJob('* * * * *', async _ => {
+  schedule.scheduleJob('*/5 * * * *', async _ => {
     try {
       const provider = new ethers.getDefaultProvider(network.rpc)
       const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
