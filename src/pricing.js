@@ -8,7 +8,9 @@ require('./networks')
 
 let wallet;
 
-const redis = createClient();
+const redis = createClient({
+  url: 'redis://10.68.1.17:6379'
+});
 redis.on('error', err => console.log('Redis Client Error', err));
 
 const addNewPrice = async (networkName, token, ts) => {
