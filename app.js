@@ -7,12 +7,9 @@ const { getPrices, schedulePricing } = require('./src/pricing');
 scheduleLiquidation();
 schedulePricing();
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);
-  if (req.url === '/_health') {
-    res.statusCode = 200;
-    res.end();
-  } else {
+  if (req.url === '/asset_prices') {
     const headers = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'OPTIONS, GET',
@@ -20,8 +17,10 @@ const server = http.createServer((req, res) => {
       'Content-Type': 'application/json'
     };
     res.writeHead(200, headers);
-    res.end(JSON.stringify(getPrices()));
+    res.end(JSON.stringify(await getPrices()));
   }
+  res.statusCode = 200;
+  res.end();
 });
 
 server.listen(port);
