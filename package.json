@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "redis": "^4.6.8"
   },
   "devDependencies": {
     "ethers": "^6.6.2"
