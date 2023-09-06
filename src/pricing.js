@@ -1,4 +1,5 @@
 const schedule = require('node-schedule');
+const { createClient } = require('redis');
 require('ethers');
 const { getContract } = require('./contractFactory');
 const ethers = require('ethers');
@@ -7,6 +8,9 @@ require('./networks')
 
 let prices = {};
 let wallet;
+
+const redis = createClient();
+redis.on('error', err => console.log('Redis Client Error', err));
 
 const addPriceToToken = (symbol, data, ts, networkName) => {
   prices[networkName][symbol].prices = [ 
@@ -32,20 +36,20 @@ const addNewToken = (symbol, data, ts, chainlinkContract, networkName) => {
 const addNewPrice = async (networkName, token, ts) => {
   const symbol = ethers.decodeBytes32String(token.symbol);
   const chainlinkContract = await getContract(networkName, 'Chainlink', token.clAddr);
-  chainlinkContract.connect(wallet).latestRoundData().then(data => {
-    if (prices[networkName][symbol]) {
-      addPriceToToken(symbol, data, ts, networkName)
-    } else {
-      addNewToken(symbol, data, ts, chainlinkContract, networkName)
-    }
+  chainlinkContract.connect(wallet).latestRoundData().then(async data => {
+    await redis.SADD(`tokens:${networkName}`, symbol);
+    await redis.ZADD(`prices:${networkName}:${symbol}`, [{score: ts, value: `${ts}:${data.answer.toString()}`}]);
+    await redis.ZREMRANGEBYRANK(`${networkName}:${symbol}`, 0, -49);
   });
 }
 
 const schedulePricing = async _ => {
+  await redis.connect();
   delay = 0;
   getNetworks().forEach(network => {
     prices[network.name] = {};
-    schedule.scheduleJob(`${delay} */30 * * * *`, async _ => {
+    // `${delay} */30 * * * *`
+    schedule.scheduleJob(`${delay} * * * * *`, async _ => {
       const provider = new ethers.getDefaultProvider(network.rpc)
       wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
       const ts = Math.floor(new Date() / 1000);
@@ -59,7 +63,31 @@ const schedulePricing = async _ => {
   });
 };
 
-const getPrices = _ => prices;
+const getPrices = async _ => {
+  const prices = {};
+  const networks = getNetworks();
+
+  for (let i = 0; i < networks.length; i++) {
+    const network = networks[i];
+    const networkPrices = {};
+    const tokens = await redis.SMEMBERS(`tokens:${network.name}`);
+    for (let j = 0; j < tokens.length; j++) {
+      const token = tokens[j];
+      const tokenPrices = (await redis.ZRANGE(`prices:${network.name}:${token}`, 0, 47)).map(priceData => {
+        const [ts, price] = priceData.split(':');
+        return {ts, price}
+      })
+      networkPrices[token] = {
+        decimals: '8',
+        prices: tokenPrices
+      };
+    }
+    
+    prices[network.name] = networkPrices;
+  }
+
+  return prices;
+};
 
 module.exports = {
   getPrices,
