@@ -6,12 +6,17 @@ const ethers = require('ethers');
 const { getNetworks } = require('./networks');
 require('./networks')
 
-let wallet;
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisPort = process.env.REDIS_PORT || '6379';
 
 const redis = createClient({
-  url: 'redis://10.68.1.17:6379'
+  url: `redis://${redisHost}:${redisPort}`
 });
 redis.on('error', err => console.log('Redis Client Error', err));
+
+const priceDataLength = 48;
+
+let wallet;
 
 const addNewPrice = async (networkName, token, ts) => {
   const symbol = ethers.decodeBytes32String(token.symbol);
@@ -19,7 +24,7 @@ const addNewPrice = async (networkName, token, ts) => {
   chainlinkContract.connect(wallet).latestRoundData().then(async data => {
     await redis.SADD(`tokens:${networkName}`, symbol);
     await redis.ZADD(`prices:${networkName}:${symbol}`, [{score: ts, value: `${ts}:${data.answer.toString()}`}]);
-    await redis.ZREMRANGEBYRANK(`${networkName}:${symbol}`, 0, -49);
+    await redis.ZREMRANGEBYRANK(`${networkName}:${symbol}`, 0, priceDataLength * -1 - 1);
   });
 }
 
