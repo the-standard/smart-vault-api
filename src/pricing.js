@@ -6,32 +6,10 @@ const ethers = require('ethers');
 const { getNetworks } = require('./networks');
 require('./networks')
 
-let prices = {};
 let wallet;
 
 const redis = createClient();
 redis.on('error', err => console.log('Redis Client Error', err));
-
-const addPriceToToken = (symbol, data, ts, networkName) => {
-  prices[networkName][symbol].prices = [ 
-    ...prices[networkName][symbol].prices, {
-      price: data.answer.toString(),
-      ts: ts
-    }
-  ].splice(-48, 48);
-}
-
-const addNewToken = (symbol, data, ts, chainlinkContract, networkName) => {
-  chainlinkContract.connect(wallet).decimals().then(dec => {
-    prices[networkName][symbol] = {
-      decimals: dec.toString(),
-      prices: [{
-        price: data.answer.toString(), 
-        ts: ts
-      }]
-    }
-  });
-}
 
 const addNewPrice = async (networkName, token, ts) => {
   const symbol = ethers.decodeBytes32String(token.symbol);
