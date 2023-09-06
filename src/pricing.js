@@ -25,9 +25,7 @@ const schedulePricing = async _ => {
   await redis.connect();
   delay = 0;
   getNetworks().forEach(network => {
-    prices[network.name] = {};
-    // `${delay} */30 * * * *`
-    schedule.scheduleJob(`${delay} * * * * *`, async _ => {
+    schedule.scheduleJob(`${delay} */30 * * * *`, async _ => {
       const provider = new ethers.getDefaultProvider(network.rpc)
       wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
       const ts = Math.floor(new Date() / 1000);
