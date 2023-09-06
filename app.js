@@ -3,21 +3,25 @@ const http = require('http');
 require('dotenv').config();
 const { scheduleLiquidation } = require('./src/liquidation');
 const { getPrices, schedulePricing } = require('./src/pricing');
+const { getStats } = require('./src/stats');
 
 scheduleLiquidation();
 schedulePricing();
 
 const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'OPTIONS, GET',
+    'Access-Control-Max-Age': 2592000,
+    'Content-Type': 'application/json'
+  };
   if (req.url === '/asset_prices') {
-    const headers = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'OPTIONS, GET',
-      'Access-Control-Max-Age': 2592000,
-      'Content-Type': 'application/json'
-    };
     res.writeHead(200, headers);
     res.end(JSON.stringify(await getPrices()));
+  } else if (req.url === '/stats') {
+    res.writeHead(200, headers);
+    res.end(JSON.stringify(getStats()));
   }
   res.statusCode = 200;
   res.end();
