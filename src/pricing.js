@@ -46,29 +46,33 @@ const schedulePricing = async _ => {
   });
 };
 
+const getTokenPrices = async (networkName, token) => {
+  return (await redis.ZRANGE(`prices:${networkName}:${token}`, 0, 47)).map(priceData => {
+    const [ts, price] = priceData.split(':');
+    return {ts, price}
+  })
+}
+
+const getNetworkPrices = async (networkName) => {
+  const networkPrices = {};
+    const tokens = await redis.SMEMBERS(`tokens:${networkName}`);
+    for (let j = 0; j < tokens.length; j++) {
+      const token = tokens[j];
+      networkPrices[token] = {
+        decimals: '8',
+        prices: await getTokenPrices(networkName, token)
+      };
+    }
+    return networkPrices;
+}
+
 const getPrices = async _ => {
   const prices = {};
   const networks = getNetworks();
-
   for (let i = 0; i < networks.length; i++) {
     const network = networks[i];
-    const networkPrices = {};
-    const tokens = await redis.SMEMBERS(`tokens:${network.name}`);
-    for (let j = 0; j < tokens.length; j++) {
-      const token = tokens[j];
-      const tokenPrices = (await redis.ZRANGE(`prices:${network.name}:${token}`, 0, 47)).map(priceData => {
-        const [ts, price] = priceData.split(':');
-        return {ts, price}
-      })
-      networkPrices[token] = {
-        decimals: '8',
-        prices: tokenPrices
-      };
-    }
-    
-    prices[network.name] = networkPrices;
+    prices[network.name] = await getNetworkPrices(network.name);
   }
-
   return prices;
 };
 
