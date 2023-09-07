@@ -1,8 +1,5 @@
-const schedule = require('node-schedule');
 const { createClient } = require('redis');
 require('ethers');
-const { getContract } = require('./contractFactory');
-const ethers = require('ethers');
 const { getNetworks } = require('./networks');
 require('./networks')
 
@@ -14,40 +11,9 @@ const redis = createClient({
 });
 redis.on('error', err => console.log('Redis Client Error', err));
 
-const priceDataLength = 48;
-
-let wallet;
-
-const addNewPrice = async (networkName, token, ts) => {
-  const symbol = ethers.decodeBytes32String(token.symbol);
-  const chainlinkContract = await getContract(networkName, 'Chainlink', token.clAddr);
-  chainlinkContract.connect(wallet).latestRoundData().then(async data => {
-    await redis.SADD(`tokens:${networkName}`, symbol);
-    await redis.ZADD(`prices:${networkName}:${symbol}`, [{score: ts, value: `${ts}:${data.answer.toString()}`}]);
-    await redis.ZREMRANGEBYRANK(`${networkName}:${symbol}`, 0, priceDataLength * -1 - 1);
-  });
-}
-
-const schedulePricing = async _ => {
-  await redis.connect();
-  delay = 0;
-  getNetworks().forEach(network => {
-    schedule.scheduleJob(`${delay} */30 * * * *`, async _ => {
-      const provider = new ethers.getDefaultProvider(network.rpc)
-      wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
-      const ts = Math.floor(new Date() / 1000);
-      (await getContract(network.name, 'TokenManager')).connect(wallet).getAcceptedTokens().then(tokens => {
-        tokens.map(token => {
-          addNewPrice(network.name, token, ts);
-        });
-      }).catch(console.log);
-    });
-    delay += 10;
-  });
-};
-
 const getTokenPrices = async (networkName, token) => {
-  return (await redis.ZRANGE(`prices:${networkName}:${token}`, 0, 47)).map(priceData => {
+  const prices = await redis.ZRANGE(`prices:${networkName}:${token}`, 0, 47);
+  return prices.map(priceData => {
     const [ts, price] = priceData.split(':');
     return {ts, price}
   })
@@ -55,6 +21,7 @@ const getTokenPrices = async (networkName, token) => {
 
 const getNetworkPrices = async (networkName) => {
   const networkPrices = {};
+    await redis.connect();
     const tokens = await redis.SMEMBERS(`tokens:${networkName}`);
     for (let j = 0; j < tokens.length; j++) {
       const token = tokens[j];
@@ -63,6 +30,7 @@ const getNetworkPrices = async (networkName) => {
         prices: await getTokenPrices(networkName, token)
       };
     }
+    await redis.disconnect();
     return networkPrices;
 }
 
@@ -77,6 +45,5 @@ const getPrices = async _ => {
 };
 
 module.exports = {
-  getPrices,
-  schedulePricing
+  getPrices
 }

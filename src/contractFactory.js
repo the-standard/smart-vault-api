@@ -27,6 +27,11 @@ const getContract = async (networkName, contractName, address) => {
   return new ethers.Contract(address, contracts[contractName]);
 };
 
+const getERC20 = async (address) => {
+  return new ethers.Contract(address, contracts.ERC20);
+}
+
 module.exports = {
-  getContract
+  getContract,
+  getERC20
 };

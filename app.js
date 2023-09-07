@@ -1,12 +1,13 @@
-const port = process.env.PORT || 3000;
 const http = require('http');
 require('dotenv').config();
 const { scheduleLiquidation } = require('./src/liquidation');
-const { getPrices, schedulePricing } = require('./src/pricing');
-const { getStats } = require('./src/stats');
+const { getPrices } = require('./src/pricing');
+const { getStats, scheduleStatIndexing } = require('./src/stats');
+
+const port = process.env.PORT || 3000;
 
 scheduleLiquidation();
-schedulePricing();
+scheduleStatIndexing();
 
 const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);
@@ -21,7 +22,7 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(await getPrices()));
   } else if (req.url === '/stats') {
     res.writeHead(200, headers);
-    res.end(JSON.stringify(getStats()));
+    res.end(JSON.stringify(await getStats()));
   }
   res.statusCode = 200;
   res.end();
