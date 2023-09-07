@@ -1,17 +1,71 @@
+const schedule = require('node-schedule');
 const ethers = require('ethers');
+const { createClient } = require('redis');
+const { getContract, getERC20 } = require('./contractFactory');
+const { getNetwork } = require('./networks');
 
-const getStats = _ => {
-  return {
-    tvl: [
-      {address: ethers.ZeroAddress, amount: ethers.parseEther('0.1').toString()},
-      {address: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f', amount: '1000000'},
-      {address: '0x912CE59144191C1204E64559FE8253a0e49E6548', amount: ethers.parseEther('100').toString()},
-      {address: '0xf97f4df75117a78c1A5a0DBb814Af92458539FB4', amount: ethers.parseEther('100').toString()},
-      {address: '0xfEb4DfC8C4Cf7Ed305bb08065D08eC6ee6728429', amount: ethers.parseEther('100').toString()}
-    ]
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisPort = process.env.REDIS_PORT || '6379';
+
+const redis = createClient({
+  url: `redis://${redisHost}:${redisPort}`
+});
+redis.on('error', err => console.log('Redis Client Error', err));
+
+
+const indexStats = async _ => {
+  await redis.connect();
+
+  const network = getNetwork('arbitrum');
+  const provider = new ethers.getDefaultProvider(network.rpc)
+  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+  const tokens = await (await getContract(network.name, 'TokenManager')).connect(wallet).getAcceptedTokens();
+  const eventData = await (await getContract(network.name, 'SmartVaultManager')).connect(wallet)
+    .queryFilter('*');
+  const vaultAddresses = eventData.filter(e => e.args).map(e => e.args[0]);
+  const tvl = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const { addr } = tokens[i];
+    let assetTvl = 0n;
+    for (let j = 0; j < vaultAddresses.length; j++) {
+      const vaultAddress = vaultAddresses[j];
+      if (addr === ethers.ZeroAddress) {
+        assetTvl += await provider.getBalance(vaultAddress);
+      } else {
+        assetTvl += await (await getERC20(addr)).connect(wallet).balanceOf(vaultAddress);
+      }
+    }
+    tvl.push({address: addr, assetTvl: assetTvl.toString()});
   }
+
+  let multi = redis.MULTI()
+          .DEL('assets')
+          .SADD('assets', tvl.map(asset => asset.address));
+  
+  tvl.forEach(asset => {
+    multi = multi.SETEX(`tvl:${asset.address}`, 3600, asset.assetTvl);
+  });
+
+  await multi.EXEC();
+}
+
+const scheduleStatIndexing = async _ => {
+  schedule.scheduleJob(`*/10 * * * *`, async _ => {
+    await indexStats();
+  });
+}
+
+const getStats = async _ => {
+  await redis.connect();
+  const assets = await redis.SMEMBERS('assets');
+  const tvl = [];
+  for (let i = 0; i < assets.length; i++) {
+    tvl.push({address: assets[i], amount: await redis.GET(`tvl:${assets[i]}`)});
+  }
+  return {tvl}
 }
 
 module.exports = {
-  getStats
+  getStats,
+  scheduleStatIndexing
 }
