@@ -16,14 +16,13 @@ const server = http.createServer(async (req, res) => {
     'Access-Control-Max-Age': 2592000,
     'Content-Type': 'application/json'
   };
+  res.writeHead(200, headers);
   if (req.url === '/asset_prices') {
     res.writeHead(200, headers);
     res.end(JSON.stringify(await getPrices()));
   } else if (req.url === '/stats') {
-    res.writeHead(200, headers);
     res.end(JSON.stringify(await getStats()));
   }
-  res.statusCode = 200;
   res.end();
 });
 
