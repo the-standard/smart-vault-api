@@ -18,7 +18,6 @@ const server = http.createServer(async (req, res) => {
   };
   res.writeHead(200, headers);
   if (req.url === '/asset_prices') {
-    res.writeHead(200, headers);
     res.end(JSON.stringify(await getPrices()));
   } else if (req.url === '/stats') {
     res.end(JSON.stringify(await getStats()));
