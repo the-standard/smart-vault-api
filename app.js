@@ -1,13 +1,10 @@
 const http = require('http');
 require('dotenv').config();
-const { scheduleLiquidation } = require('./src/liquidation');
 const { getPrices } = require('./src/pricing');
 const { getStats } = require('./src/stats');
 const { getNimbusData } = require('./src/nimbus.js');
 
 const port = process.env.PORT || 3000;
-
-scheduleLiquidation();
 
 const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);
