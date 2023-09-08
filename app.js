@@ -3,6 +3,7 @@ require('dotenv').config();
 const { scheduleLiquidation } = require('./src/liquidation');
 const { getPrices } = require('./src/pricing');
 const { getStats } = require('./src/stats');
+const { getNimbusData } = require('./src/nimbus.js');
 
 const port = process.env.PORT || 3000;
 
@@ -21,6 +22,8 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(await getPrices()));
   } else if (req.url === '/stats') {
     res.end(JSON.stringify(await getStats()));
+  } else if (req.url === '/nimbus') {
+    res.end(JSON.stringify(await getNimbusData()));
   }
   res.end();
 });
