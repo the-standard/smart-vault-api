@@ -69,9 +69,9 @@ jobs:
           gcloud container clusters get-credentials cluster-1 --zone $CLOUDSDK_COMPUTE_ZONE --project $PROJECT_NAME
           kubectl set image deployment/$DEPLOYMENT-deployment $DEPLOYMENT=${IMAGE_TAG} -n ${NAMESPACE}
 
-    - name: Clean up
-        run: |-
-            for digest in $(gcloud container images list-tags gcr.io/clean-resource-316109/smart-vault-api --format="get(digest)" --limit=2 --filter="NOT tags:${GITHUB_REF##*/}.${GITHUB_SHA}") \
-            do \
-                gcloud container images delete "gcr.io/clean-resource-316109/smart-vault-api@$digest" --force-delete-tags --quiet \
-            done
+    - name: Cleanup
+      run: |-
+          for digest in $(gcloud container images list-tags gcr.io/clean-resource-316109/smart-vault-api --format="get(digest)" --limit=2 --filter="NOT tags:${GITHUB_REF##*/}.${GITHUB_SHA}") \
+          do \
+            gcloud container images delete "gcr.io/clean-resource-316109/smart-vault-api@$digest" --force-delete-tags --quiet \
+          done
