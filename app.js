@@ -3,7 +3,6 @@ require('dotenv').config();
 const { getPrices } = require('./src/pricing');
 const { getStats } = require('./src/stats');
 const { getNimbusData } = require('./src/nimbus.js');
-console.log(process.env.REDIS_HOST)
 const port = process.env.PORT || 3000;
 
 const server = http.createServer(async (req, res) => {
