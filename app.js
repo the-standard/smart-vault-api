@@ -2,7 +2,7 @@ const http = require('http');
 require('dotenv').config();
 const { getPrices } = require('./src/pricing');
 const { getStats } = require('./src/stats');
-const { getNimbusData } = require('./src/nimbus.js');
+const { getYieldData } = require('./src/yield.js');
 const port = process.env.PORT || 3000;
 
 const server = http.createServer(async (req, res) => {
@@ -18,8 +18,8 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(await getPrices()));
   } else if (req.url === '/stats') {
     res.end(JSON.stringify(await getStats()));
-  } else if (req.url === '/nimbus') {
-    res.end(JSON.stringify(await getNimbusData()));
+  } else if (req.url === '/yield') {
+    res.end(JSON.stringify(await getYieldData()));
   }
   res.end();
 });
