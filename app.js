@@ -20,6 +20,8 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(await getStats()));
   } else if (req.url === '/yield') {
     res.end(JSON.stringify(await getYieldData()));
+  } else if (req.url === '/nimbus') {
+    res.end(JSON.stringify(await getYieldData()));
   }
   res.end();
 });
