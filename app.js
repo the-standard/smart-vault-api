@@ -3,7 +3,13 @@ require('dotenv').config();
 const { getPrices } = require('./src/pricing');
 const { getStats } = require('./src/stats');
 const { getYieldData } = require('./src/yield.js');
+const { getTransactions } = require('./src/transactions.js');
 const port = process.env.PORT || 3000;
+
+const vaultTransactionsAddress = url => {
+  const regex = /^\/transactions\/(?<address>0x(\w|\d)*)$/;
+  return url.match(regex) && url.match(regex).groups.address;
+}
 
 const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);
@@ -20,8 +26,9 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(await getStats()));
   } else if (req.url === '/yield') {
     res.end(JSON.stringify(await getYieldData()));
-  } else if (req.url === '/nimbus') {
-    res.end(JSON.stringify(await getYieldData()));
+  } else if (vaultTransactionsAddress(req.url)) {
+    const vaultAddress = vaultTransactionsAddress(req.url);
+    res.end(JSON.stringify(await getTransactions(vaultAddress)));
   }
   res.end();
 });
