@@ -46,10 +46,12 @@ const getTransactions = async url => {
   const start = (page - 1) * limit;
   const end = start + limit - 1;
   const REV = !(sort === 'asc');
+  const key = getTransactionsKey(address)
   await redis.connect();
-  const transactionData = await redis.ZRANGE_WITHSCORES(getTransactionsKey(address), start, end, {REV});
+  const transactionData = await redis.ZRANGE_WITHSCORES(key, start, end, {REV});
+  const count = await redis.ZCARD(key);
   await redis.disconnect();
-  return transactionData.map(data => {
+  const transactions = transactionData.map(data => {
     const labelledData = {
       timestamp: data.score
     };
@@ -60,6 +62,14 @@ const getTransactions = async url => {
       }
     }, labelledData);
   });
+  return {
+    data: transactions,
+    pagination: {
+      currentPage: page,
+      totalRows: count,
+      rowsPerPage: limit
+    }
+  }
 };
 
 module.exports = {
