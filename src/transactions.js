@@ -33,7 +33,7 @@ const parsedQueryParamsWithDefaults = queryParams => {
   return params;
 }
 
-const getTransactions = async url => {
+const formatTransactions = transactionData => {
   // SCHEMA:
   // key: 'vaultTxs:0x...'
   // score: timestamp
@@ -41,17 +41,7 @@ const getTransactions = async url => {
   // e.g. 'deposit:0x8ae26a528861d3e6c08d4331885eaba2d1b5b55fc540234fc9b8c9c198a0d429:124132949:PAXG:8000000000000000:18:136175000000000000000:181087962079756018667'
   const schema = ['type','txHash','blockNo','asset','amount','assetDec','minted','totalCollateralValue'];
 
-  const {address, queryParams} = vaultTransactionsAddress(url);
-  const { page, limit, sort } = parsedQueryParamsWithDefaults(queryParams);
-  const start = (page - 1) * limit;
-  const end = start + limit - 1;
-  const REV = !(sort === 'asc');
-  const key = getTransactionsKey(address)
-  await redis.connect();
-  const transactionData = await redis.ZRANGE_WITHSCORES(key, start, end, {REV});
-  const count = await redis.ZCARD(key);
-  await redis.disconnect();
-  const transactions = transactionData.map(data => {
+  return transactionData.map(data => {
     const labelledData = {
       timestamp: data.score
     };
@@ -62,6 +52,20 @@ const getTransactions = async url => {
       }
     }, labelledData);
   });
+}
+
+const getTransactions = async url => {
+  const {address, queryParams} = vaultTransactionsAddress(url);
+  const { page, limit, sort } = parsedQueryParamsWithDefaults(queryParams);
+  const start = (page - 1) * limit;
+  const end = start + limit - 1;
+  const REV = !(sort === 'asc');
+  const key = getTransactionsKey(address)
+  await redis.connect();
+  const transactionData = await redis.ZRANGE_WITHSCORES(key, start, end, {REV});
+  const count = await redis.ZCARD(key);
+  await redis.disconnect();
+  const transactions = formatTransactions(transactionData);
   return {
     data: transactions,
     pagination: {
