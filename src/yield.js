@@ -1,4 +1,4 @@
-const { createClient, Graph } = require('redis');
+const { createClient } = require('redis');
 const redisHost = process.env.REDIS_HOST || '127.0.0.1';
 const redisPort = process.env.REDIS_PORT || '6379';
 const GRAIL_ADDRESS = '0x3d9907f9a368ad0a51be60f7da3b97cf940982d8';

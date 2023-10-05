@@ -1,4 +1,5 @@
 const { createClient } = require('redis');
+const { parseQueryParams } = require('./utils')
 
 const redisHost = process.env.REDIS_HOST || '127.0.0.1';
 const redisPort = process.env.REDIS_PORT || '6379';
@@ -16,15 +17,9 @@ const vaultTransactionsAddress = url => {
 const getTransactionsKey = address => {
   return `vaultTxs:${address.toLowerCase()}`;
 }
-
+  
 const parsedQueryParamsWithDefaults = queryParams => {
-  let params = {}
-  if (queryParams) {
-    params = queryParams && queryParams.split('&').reduce((obj, param) => {
-      const splitParam = param.split('=');
-      return { ... obj, [splitParam[0]]: splitParam[1] }
-    }, params);
-  }
+  const params = parseQueryParams(queryParams);
 
   params.page = params.page && parseInt(params.page) ? 
     parseInt(params.page) : 1;

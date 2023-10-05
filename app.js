@@ -3,6 +3,7 @@ require('dotenv').config();
 const { getPrices } = require('./src/pricing');
 const { getStats } = require('./src/stats');
 const { getYieldData } = require('./src/yield.js');
+const { estimateSwap, estimateSwapUrl } = require('./src/swap.js');
 const { getTransactions, vaultTransactionsAddress } = require('./src/transactions.js');
 const port = process.env.PORT || 3000;
 
@@ -17,6 +18,8 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(200, headers);
   if (req.url === '/asset_prices') {
     res.end(JSON.stringify(await getPrices()));
+  } else if (estimateSwapUrl(req.url)) {
+    res.end(JSON.stringify(await estimateSwap(req.url)))
   } else if (req.url === '/stats') {
     res.end(JSON.stringify(await getStats()));
   } else if (req.url === '/yield') {

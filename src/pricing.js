@@ -1,7 +1,5 @@
 const { createClient } = require('redis');
-require('ethers');
 const { getNetworks } = require('./networks');
-require('./networks');
 
 const redisHost = process.env.REDIS_HOST || '127.0.0.1';
 const redisPort = process.env.REDIS_PORT || '6379';
