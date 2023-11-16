@@ -98,6 +98,10 @@ const getUniswapTokenAddressForSymbol = (tokens, symbol) => {
     address;
 }
 
+const removeFee = amount => {
+  return amount.mul(995).div(1000);
+}
+
 const estimateSwap = async url => {
   try {
     const provider = new ethers.getDefaultProvider(RPC);
@@ -119,7 +123,7 @@ const estimateSwap = async url => {
     const inToken = getUniswapTokenAddressForSymbol(tokens, parsed.in);
     const outToken = getUniswapTokenAddressForSymbol(tokens, parsed.out);
   
-    return (await quoterContract.callStatic.quoteExactInputSingle(
+    return removeFee(await quoterContract.callStatic.quoteExactInputSingle(
       inToken,
       outToken,
       3000,

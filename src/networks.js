@@ -4,8 +4,8 @@ const networks = [
     rpc: 'https://arb1.arbitrum.io/rpc'
   },
   {
-    name: 'arbitrum_goerli',
-    rpc: 'https://goerli-rollup.arbitrum.io/rpc'
+    name: 'arbitrum_sepolia',
+    rpc: 'https://sepolia-rollup.arbitrum.io/rpc'
   }
 ]
 
