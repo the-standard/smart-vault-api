@@ -8,11 +8,7 @@ let pool = new Pool({
   user: POSTGRES_USERNAME,
   password: POSTGRES_PASSWORD,
   host: POSTGRES_HOST,
-  port: POSTGRES_PORT,
-  max: 20, // set pool max size to 20
-  idleTimeoutMillis: 1000, // close idle clients after 1 second
-  connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
-  maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
+  port: POSTGRES_PORT
 });
 
 const liquidationPoolsAddress = url => {
@@ -31,21 +27,9 @@ const getDBData = async userAddress => {
   return result;
 }
 
-const formatRewards = data => {
-  return data.map(snapshot => {
-    snapshot.rewards = snapshot.rewards.map(reward => {
-      return {
-        symbol: reward[0],
-        amount: reward[1]
-      };
-    });
-    return snapshot;
-  });
-}
-
 const getLiquidationPoolData = async url => {
   const userAddress = liquidationPoolsAddress(url).address.toLowerCase();
-  return formatRewards(await getDBData(userAddress));
+  return await getDBData(userAddress);
 };
 
 module.exports = {
