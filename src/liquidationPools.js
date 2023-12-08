@@ -20,7 +20,8 @@ const getDBData = async userAddress => {
   let result = [];
   const client = await pool.connect();
   try {
-    result = (await client.query('SELECT snapshot_at, assets FROM user_pool_snapshots_sepolia where user_address = $1', [userAddress])).rows;
+    const query = 'SELECT snapshot_at, assets FROM user_pool_snapshots_sepolia where user_address = $1 ORDER BY snapshot_at ASC';
+    result = (await client.query(query, [userAddress])).rows;
   } finally {
     client.release();
   }
