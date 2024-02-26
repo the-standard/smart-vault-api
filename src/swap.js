@@ -1,4 +1,4 @@
-const { ethers } = require('ethers');
+const { ethers, BigNumber } = require('ethers');
 const { parseQueryParams } = require('./utils');
 const QUOTER_CONTRACT_ADDRESS = '0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6';
 const TOKEN_MANAGER_ADDRESS = '0x33c5A816382760b6E5fb50d8854a61b3383a32a0';
@@ -99,7 +99,7 @@ const getUniswapTokenAddressForSymbol = (tokens, symbol) => {
 }
 
 const removeFee = amount => {
-  return amount.mul(990).div(1000);
+  return BigNumber.from(amount).mul(990).div(1000);
 }
 
 const estimateSwap = async url => {
@@ -123,11 +123,11 @@ const estimateSwap = async url => {
     const inToken = getUniswapTokenAddressForSymbol(tokens, parsed.in);
     const outToken = getUniswapTokenAddressForSymbol(tokens, parsed.out);
   
-    return removeFee(await quoterContract.callStatic.quoteExactInputSingle(
+    return (await quoterContract.callStatic.quoteExactInputSingle(
       inToken,
       outToken,
       3000,
-      parsed.amount,
+      removeFee(parsed.amount),
       0
     )).toString();
   } catch (e) {
