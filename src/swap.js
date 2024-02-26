@@ -131,6 +131,7 @@ const estimateSwap = async url => {
       0
     )).toString();
   } catch (e) {
+    console.log(e);
     return '0';
   }
 };
