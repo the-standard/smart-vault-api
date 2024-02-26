@@ -99,7 +99,7 @@ const getUniswapTokenAddressForSymbol = (tokens, symbol) => {
 }
 
 const removeFee = amount => {
-  return amount.mul(995).div(1000);
+  return amount.mul(990).div(1000);
 }
 
 const estimateSwap = async url => {
