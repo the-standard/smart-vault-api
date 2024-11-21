@@ -148,7 +148,7 @@ const managerABI = [
 ];
 
 const getRedemptionData = async _ => {
-  return ethers.utils.arrayify(ethers.utils.defaultAbiCoder.encode(['uint256','address'],['29','0x82aF49447D8a07e3bd95BD0d56f35241523fBab1']));
+  return {tokenID: '29', collateral: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1'};
 };
 
 module.exports = {
