@@ -31,7 +31,7 @@ const server = http.createServer(async (req, res) => {
   } else if (liquidationPoolsAddress(req.url)) {
     res.end(JSON.stringify(await getLiquidationPoolData(req.url)));
   } else if (req.url === '/redemption') {
-    res.end(JSON.stringify(await getRedemptionData()))
+    res.end(await getRedemptionData())
   }
   res.end();
 });
