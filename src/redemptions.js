@@ -148,10 +148,9 @@ const managerABI = [
 ];
 
 const getRedemptionData = async _ => {
-  return {tokenID: '29', collateral: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1'};
+  return {tokenID: '29', collateral: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', value: ethers.utils.parseEther('1500').toString()};
 };
 
 module.exports = {
   getRedemptionData
 };
-
