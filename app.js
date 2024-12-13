@@ -1,8 +1,6 @@
 const http = require('http');
 require('dotenv').config();
 const { getPrices } = require('./src/pricing');
-const { getStats } = require('./src/stats');
-const { getYieldData } = require('./src/yield.js');
 const { estimateSwap, estimateSwapUrl } = require('./src/swap.js');
 const { getTransactions, vaultTransactionsAddress } = require('./src/transactions.js');
 const { getLiquidationPoolData, liquidationPoolsAddress } = require('./src/liquidationPools.js');
@@ -23,10 +21,6 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(await getPrices()));
   } else if (estimateSwapUrl(req.url)) {
     res.end(JSON.stringify(await estimateSwap(req.url)))
-  } else if (req.url === '/stats') {
-    res.end(JSON.stringify(await getStats()));
-  } else if (req.url === '/yield') {
-    res.end(JSON.stringify(await getYieldData()));
   } else if (vaultTransactionsAddress(req.url)) {
     res.end(JSON.stringify(await getTransactions(req.url)));
   } else if (liquidationPoolsAddress(req.url)) {
