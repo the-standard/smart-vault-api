@@ -1,0 +1,25 @@
+const { createClient } = require('redis');
+
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisPort = process.env.REDIS_PORT || '6379';
+
+const redis = createClient({
+  url: `redis://${redisHost}:${redisPort}`
+});
+redis.on('error', err => console.log('Redis Client Error', err));
+
+const limited = async ip => {
+  const key = `rateLimit:${ip}`
+  const reqLimit = 100;
+  await redis.connect();
+  const [ blah ] = await redis.MULTI()
+    .INCR(key)
+    .EXPIRE(key, 60)
+    .EXEC();
+  await redis.disconnect();
+  return blah > reqLimit;
+}
+
+module.exports = {
+  limited
+};

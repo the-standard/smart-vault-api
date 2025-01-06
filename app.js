@@ -1,5 +1,6 @@
 const http = require('http');
 require('dotenv').config();
+const { limited } = require('./src/rate');
 const { getPrices } = require('./src/pricing');
 const { estimateSwap, estimateSwapUrl } = require('./src/swap.js');
 const { getTransactions, vaultTransactionsAddress } = require('./src/transactions.js');
@@ -16,23 +17,25 @@ const server = http.createServer(async (req, res) => {
     'Access-Control-Max-Age': 2592000,
     'Content-Type': 'application/json'
   };
-  var ip = req.headers['x-forwarded-for'] ||
-     req.socket.remoteAddress ||
-     null;
-  console.log("ip",ip)
-  res.writeHead(200, headers);
-  if (req.url === '/asset_prices') {
-    res.end(JSON.stringify(await getPrices()));
-  } else if (estimateSwapUrl(req.url)) {
-    res.end(JSON.stringify(await estimateSwap(req.url)))
-  } else if (vaultTransactionsAddress(req.url)) {
-    res.end(JSON.stringify(await getTransactions(req.url)));
-  } else if (liquidationPoolsAddress(req.url)) {
-    res.end(JSON.stringify(await getLiquidationPoolData(req.url)));
-  } else if (req.url === '/redemption') {
-    res.end(JSON.stringify(await getRedemptionData()))
-  } else if (supplyAddress(req.url)) {
-    res.end(JSON.stringify(await getSupplyData(req.url)))
+  const ip = req.headers['x-forwarded-for'] ||
+    req.socket.remoteAddress;
+  if (ip && await limited(ip)) {
+    res.writeHead(429);
+  } else {
+    res.writeHead(200, headers);
+    if (req.url === '/asset_prices') {
+      res.end(JSON.stringify(await getPrices()));
+    } else if (estimateSwapUrl(req.url)) {
+      res.end(JSON.stringify(await estimateSwap(req.url)))
+    } else if (vaultTransactionsAddress(req.url)) {
+      res.end(JSON.stringify(await getTransactions(req.url)));
+    } else if (liquidationPoolsAddress(req.url)) {
+      res.end(JSON.stringify(await getLiquidationPoolData(req.url)));
+    } else if (req.url === '/redemption') {
+      res.end(JSON.stringify(await getRedemptionData()))
+    } else if (supplyAddress(req.url)) {
+      res.end(JSON.stringify(await getSupplyData(req.url)))
+    }
   }
   res.end();
 });
