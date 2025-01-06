@@ -9,19 +9,13 @@ const redis = createClient({
 redis.on('error', err => console.log('Redis Client Error', err));
 
 const limited = async ip => {
-  console.log(1)
-  console.log(ip)
   const key = `rateLimit:${ip}`
-  console.log(2)
-  const reqLimit = 10;
-  console.log(3)
+  const reqLimit = 100;
   await redis.connect();
-  console.log(4)
   const [ visits ] = await redis.MULTI()
     .INCR(key)
     .EXPIRE(key, 60)
     .EXEC();
-  console.log(visits)
   await redis.disconnect();
   return visits > reqLimit;
 }
