@@ -16,6 +16,10 @@ const server = http.createServer(async (req, res) => {
     'Access-Control-Max-Age': 2592000,
     'Content-Type': 'application/json'
   };
+  var ip = req.headers['x-forwarded-for'] ||
+     req.socket.remoteAddress ||
+     null;
+  console.log("ip",ip)
   res.writeHead(200, headers);
   if (req.url === '/asset_prices') {
     res.end(JSON.stringify(await getPrices()));
