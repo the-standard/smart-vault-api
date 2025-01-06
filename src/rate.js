@@ -13,7 +13,7 @@ const limited = async ip => {
   console.log(ip)
   const key = `rateLimit:${ip}`
   console.log(2)
-  const reqLimit = 100;
+  const reqLimit = 10;
   console.log(3)
   await redis.connect();
   console.log(4)
