@@ -14,7 +14,6 @@ const limited = async ip => {
   await redis.connect();
   const visits = await redis.INCR(key);
   if (visits === 1) await redis.EXPIRE(key, 60);
-  console.log(visits)
   await redis.disconnect();
   return visits > reqLimit;
 }
