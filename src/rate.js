@@ -11,7 +11,7 @@ redis.on('error', err => console.log('Redis Client Error', err));
 const limited = async ip => {
   const key = `rateLimit:${ip}`
   const reqLimit = 100;
-  await redis.connect();
+  if (!redis.isReady) await redis.connect();
   const visits = await redis.INCR(key);
   if (visits === 1) await redis.EXPIRE(key, 60);
   await redis.disconnect();
