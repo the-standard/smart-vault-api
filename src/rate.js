@@ -9,6 +9,7 @@ const redis = createClient({
 redis.on('error', err => console.log('Redis Client Error', err));
 
 const limited = async ip => {
+  return false;
   const key = `rateLimit:${ip}`
   const reqLimit = 100;
   if (!redis.isReady) await redis.connect();
