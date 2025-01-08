@@ -12,7 +12,9 @@ const limited = async ip => {
   const key = `rateLimit:${ip}`
   const reqLimit = 100;
   if (!redis.isReady) await redis.connect();
+  console.log(redis.isReady);
   const visits = await redis.INCR(key);
+  console.log(visits)
   if (visits === 1) await redis.EXPIRE(key, 60);
   await redis.disconnect();
   return visits > reqLimit;
