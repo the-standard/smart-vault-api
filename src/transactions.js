@@ -1,5 +1,13 @@
-const { getReadyRedis } = require('./redis');
-const { parseQueryParams } = require('./utils');
+const { createClient } = require('redis');
+const { parseQueryParams } = require('./utils')
+
+const redisHost = process.env.REDIS_HOST || '127.0.0.1';
+const redisPort = process.env.REDIS_PORT || '6379';
+
+const redis = createClient({
+  url: `redis://${redisHost}:${redisPort}`
+});
+redis.on('error', err => console.log('Redis Client Error', err));
 
 const vaultTransactionsAddress = url => {
   const regex = /^\/transactions\/(?<address>0x[\w\d]*)(\?(?<queryParams>.*))?.*$/;
@@ -48,7 +56,7 @@ const getTransactions = async url => {
   const end = start + limit - 1;
   const REV = !(sort === 'asc');
   const key = getTransactionsKey(address)
-  const redis = await getReadyRedis();
+  await redis.connect();
   const transactionData = await redis.ZRANGE_WITHSCORES(key, start, end, {REV});
   const count = await redis.ZCARD(key);
   await redis.disconnect();
