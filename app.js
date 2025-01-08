@@ -20,10 +20,9 @@ const server = http.createServer(async (req, res) => {
   };
   const ip = req.headers['x-forwarded-for'] ||
     req.socket.remoteAddress;
-  // if (ip && await limited(ip)) {
-  //   console.log('limited')
-  //   res.writeHead(429, headers);
-  // } else {
+  if (ip && await limited(ip)) {
+    res.writeHead(429, headers);
+  } else {
     res.writeHead(200, headers);
     if (req.url === '/asset_prices') {
       res.end(JSON.stringify(await getPrices()));
@@ -38,7 +37,7 @@ const server = http.createServer(async (req, res) => {
     } else if (supplyAddress(req.url)) {
       res.end(JSON.stringify(await getSupplyData(req.url)))
     }
-  // }
+  }
 
   res.end();
 });
