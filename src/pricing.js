@@ -1,16 +1,8 @@
-const { createClient } = require('redis');
 const { getNetworks } = require('./networks');
-
-const redisHost = process.env.REDIS_HOST || '127.0.0.1';
-const redisPort = process.env.REDIS_PORT || '6379';
-
-const redis = createClient({
-  url: `redis://${redisHost}:${redisPort}`
-});
-redis.on('error', err => console.log('Redis Client Error', err));
+const { redisClient } = require('./redis');
 
 const getTokenPrices = async (networkName, token) => {
-  const prices = await redis.ZRANGE(`prices:${networkName}:${token}`, 0, 47);
+  const prices = await redisClient.ZRANGE(`prices:${networkName}:${token}`, 0, 47);
   return prices.map(priceData => {
     const [ts, price] = priceData.split(':');
     return { ts, price };
@@ -19,8 +11,7 @@ const getTokenPrices = async (networkName, token) => {
 
 const getNetworkPrices = async (networkName) => {
   const networkPrices = {};
-  await redis.connect();
-  const tokens = await redis.SMEMBERS(`tokens:${networkName}`);
+  const tokens = await redisClient.SMEMBERS(`tokens:${networkName}`);
   for (let j = 0; j < tokens.length; j++) {
     const token = tokens[j];
     networkPrices[token] = {
@@ -28,7 +19,6 @@ const getNetworkPrices = async (networkName) => {
       prices: await getTokenPrices(networkName, token)
     };
   }
-  await redis.disconnect();
   return networkPrices;
 };
 
