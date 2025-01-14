@@ -1,6 +1,8 @@
 const { redisClient } = require("./redis");
 
 const limited = async ip => {
+  console.log(redisClient.isOpen);
+  console.log(redisClient.isReady);
   const key = `rateLimit:${ip}`
   const reqLimit = 100;
   const visits = await redisClient.INCR(key);
