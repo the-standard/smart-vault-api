@@ -151,6 +151,23 @@ const getRedemptionData = async _ => {
   return {tokenID: '29', collateral: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', value: ethers.utils.parseEther('1500').toString()};
 };
 
+const vaultRedemptionsAddress = url => {
+  const split = url.split('/');
+  return split.length === 3 && split[1] === 'redemptions' && split[2];
+}
+
+const getVaultRedemptionData = url => {
+  return [{
+    collateral: ethers.constants.AddressZero,
+    amount: '0.5',
+    amountUSD: '1500',
+    debtRepaid: '1700',
+    ts: '1736849302'
+  }]
+}
+
 module.exports = {
-  getRedemptionData
+  getRedemptionData,
+  vaultRedemptionsAddress,
+  getVaultRedemptionData
 };
