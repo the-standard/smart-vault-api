@@ -158,13 +158,13 @@ const vaultRedemptionsAddress = url => {
 
 const getVaultRedemptionData = url => {
   return [{
-    collateral: ethers.constants.AddressZero,
+    collateral: 'ETH',
     amount: '0.5',
     amountUSD: '1500',
     debtRepaid: '1700',
     ts: '1736849302'
   },{
-    collateral: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+    collateral: "WBTC",
     amount: '0.01',
     amountUSD: '960',
     debtRepaid: '1000',
