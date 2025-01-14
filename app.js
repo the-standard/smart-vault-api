@@ -23,7 +23,9 @@ const server = http.createServer(async (req, res) => {
   if (ip && await limited(ip)) {
     res.writeHead(429, headers);
   } else {
+    console.log('hello')
     res.writeHead(200, headers);
+    console.log('hi')
     if (req.url === '/asset_prices') {
       res.end(JSON.stringify(await getPrices()));
     } else if (estimateSwapUrl(req.url)) {
@@ -40,7 +42,8 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify(await getSupplyData(req.url)))
     }
   }
-
+  
+  console.log('end')
   res.end();
 });
 
