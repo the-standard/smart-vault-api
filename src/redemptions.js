@@ -1,4 +1,5 @@
 const { ethers } = require("ethers");
+const { redisClient } = require("./redis");
 const managerABI = [
   {
     "type": "function",
@@ -148,7 +149,7 @@ const managerABI = [
 ];
 
 const getRedemptionData = async _ => {
-  return {tokenID: '29', collateral: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', value: ethers.utils.parseEther('1500').toString()};
+  return await redisClient.HGETALL('redemption');
 };
 
 const vaultRedemptionsAddress = url => {
@@ -156,7 +157,7 @@ const vaultRedemptionsAddress = url => {
   return split.length === 3 && split[1] === 'redemptions' && split[2];
 }
 
-const getVaultRedemptionData = url => {
+const getVaultRedemptionData = async url => {
   return [{
     collateral: 'ETH',
     amount: '0.5',
