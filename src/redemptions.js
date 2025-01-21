@@ -158,19 +158,7 @@ const vaultRedemptionsAddress = url => {
 }
 
 const getVaultRedemptionData = async url => {
-  return [{
-    collateral: 'ETH',
-    amount: '0.5',
-    amountUSD: '1500',
-    debtRepaid: '1700',
-    ts: '1736849302'
-  },{
-    collateral: "WBTC",
-    amount: '0.01',
-    amountUSD: '960',
-    debtRepaid: '1000',
-    ts: '1736841202'
-  }]
+  return []
 }
 
 module.exports = {
