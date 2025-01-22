@@ -161,8 +161,17 @@ const getVaultRedemptionData = async url => {
   return []
 }
 
+const getRedemptionMultiData = async _ => {
+  return [
+    {"tokenID":"7","collateral":"0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f","hypervisor":"0x0000000000000000000000000000000000000000"},
+    {"tokenID":"50","collateral":"0x0000000000000000000000000000000000000000","hypervisor":"0x52ee1FFBA696c5E9b0Bc177A9f8a3098420EA691"},
+    {"tokenID":"97","collateral":"0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f","hypervisor":"0x52ee1FFBA696c5E9b0Bc177A9f8a3098420EA691"}
+  ]
+}
+
 module.exports = {
   getRedemptionData,
   vaultRedemptionsAddress,
-  getVaultRedemptionData
+  getVaultRedemptionData,
+  getRedemptionMultiData
 };

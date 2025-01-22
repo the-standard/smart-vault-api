@@ -5,7 +5,7 @@ const { getPrices } = require('./src/pricing');
 const { estimateSwap, estimateSwapUrl } = require('./src/swap.js');
 const { getTransactions, vaultTransactionsAddress } = require('./src/transactions.js');
 const { getLiquidationPoolData, liquidationPoolsAddress } = require('./src/liquidationPools.js');
-const { getRedemptionData, vaultRedemptionsAddress, getVaultRedemptionData } = require('./src/redemptions.js');
+const { getRedemptionData, getRedemptionMultiData, vaultRedemptionsAddress, getVaultRedemptionData } = require('./src/redemptions.js');
 const { supplyAddress, getSupplyData } = require('./src/supply.js');
 const port = process.env.PORT || 3000;
 
@@ -34,6 +34,8 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify(await getLiquidationPoolData(req.url)));
     } else if (req.url === '/redemption') {
       res.end(JSON.stringify(await getRedemptionData()))
+    } else if (req.url === '/redemption_multi') {
+      res.end(JSON.stringify(await getRedemptionMultiData()))
     } else if (vaultRedemptionsAddress(req.url)) {
       res.end(JSON.stringify(await getVaultRedemptionData(req.url)));
     } else if (supplyAddress(req.url)) {
@@ -41,7 +43,6 @@ const server = http.createServer(async (req, res) => {
     }
   // }
   
-  console.log('end')
   res.end();
 });
 
