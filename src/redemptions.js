@@ -1,5 +1,19 @@
 const { ethers } = require("ethers");
+const Pool = require('pg-pool')
 const { redisClient } = require("./redis");
+
+const { 
+  POSTGRES_HOST, POSTGRES_PORT, POSTGRES_STANDARD_DB, POSTGRES_USERNAME, POSTGRES_PASSWORD
+} = process.env;
+
+let pool = new Pool({
+  database: POSTGRES_STANDARD_DB,
+  user: POSTGRES_USERNAME,
+  password: POSTGRES_PASSWORD,
+  host: POSTGRES_HOST,
+  port: POSTGRES_PORT
+});
+
 const managerABI = [
   {
     "type": "function",
@@ -158,7 +172,16 @@ const vaultRedemptionsAddress = url => {
 }
 
 const getVaultRedemptionData = async url => {
-  return []
+  const vaultAddress = vaultRedemptionsAddress(url);
+  let result = []
+  const client = await pool.connect();
+  try {
+    const query = 'SELECT collateral_token AS collateral, TRUNC(EXTRACT(EPOCH FROM redeemed_at)) AS ts, usds_redeemed AS debtRepaid, collateral_sold AS amount, collateral_sold_usd AS amountUSD FROM redemptions WHERE LOWER(vault_address) = LOWER($1);';
+    result = (await client.query(query, [vaultAddress])).rows;
+  } finally {
+    client.release();
+  }
+  return result;
 }
 
 const getRedemptionMultiData = async _ => {
