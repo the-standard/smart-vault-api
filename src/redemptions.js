@@ -172,17 +172,16 @@ const vaultRedemptionsAddress = url => {
 }
 
 const getVaultRedemptionData = async url => {
-  return [];
-  // const vaultAddress = vaultRedemptionsAddress(url);
-  // let result = []
-  // const client = await pool.connect();
-  // try {
-  //   const query = 'SELECT collateral_token AS collateral, TRUNC(EXTRACT(EPOCH FROM redeemed_at)) AS ts, usds_redeemed AS debtRepaid, collateral_sold AS amount, collateral_sold_usd AS amountUSD FROM redemptions WHERE LOWER(vault_address) = LOWER($1);';
-  //   result = (await client.query(query, [vaultAddress])).rows;
-  // } finally {
-  //   client.release();
-  // }
-  // return result;
+  const vaultAddress = vaultRedemptionsAddress(url);
+  let result = []
+  const client = await pool.connect();
+  try {
+    const query = 'SELECT collateral_token AS collateral, TRUNC(EXTRACT(EPOCH FROM redeemed_at)) AS ts, usds_redeemed AS debtRepaid, collateral_sold AS amount, collateral_sold_usd AS amountUSD FROM redemptions WHERE LOWER(vault_address) = LOWER($1);';
+    result = (await client.query(query, [vaultAddress])).rows;
+  } finally {
+    client.release();
+  }
+  return result;
 }
 
 const getRedemptionMultiData = async _ => {
