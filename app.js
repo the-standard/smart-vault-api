@@ -40,6 +40,8 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify(await getVaultRedemptionData(req.url)));
     } else if (supplyAddress(req.url)) {
       res.end(JSON.stringify(await getSupplyData(req.url)))
+    } else if (req.url === '/liquidations') {
+      res.end(JSON.stringify([]))
     }
   // }
   
