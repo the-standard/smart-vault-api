@@ -7,6 +7,7 @@ const { getTransactions, vaultTransactionsAddress } = require('./src/transaction
 const { getLiquidationPoolData, liquidationPoolsAddress } = require('./src/liquidationPools.js');
 const { getRedemptionData, getRedemptionMultiData, vaultRedemptionsAddress, getVaultRedemptionData } = require('./src/redemptions.js');
 const { supplyAddress, getSupplyData } = require('./src/supply.js');
+const { getAtRiskVaults } = require('./src/liquidations.js');
 const port = process.env.PORT || 3000;
 
 
@@ -41,7 +42,7 @@ const server = http.createServer(async (req, res) => {
     } else if (supplyAddress(req.url)) {
       res.end(JSON.stringify(await getSupplyData(req.url)))
     } else if (req.url === '/liquidations') {
-      res.end(JSON.stringify([]))
+      res.end(JSON.stringify(await getAtRiskVaults()))
     }
   // }
   
