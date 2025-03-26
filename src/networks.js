@@ -6,6 +6,10 @@ const networks = [
   {
     name: 'arbitrum_sepolia',
     rpc: 'https://sepolia-rollup.arbitrum.io/rpc'
+  },
+  {
+    name: 'ethereum',
+    rpc: 'https://eth.llamarpc.com'
   }
 ]
 
