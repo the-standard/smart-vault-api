@@ -1,5 +1,4 @@
 const https = require('https')
-const { redisClient } = require('./redis');
 const { parseQueryParams } = require('./utils')
 
 const vaultTransactionsAddress = url => {
@@ -25,10 +24,7 @@ const fields = {
   collateralDeposited: 'token from amount'
 }
 
-const fetchVaultActivityData = async (address, detailID, parameters) => {
-  const query = parameters && parameters.detailType && detailID ?
-    `query { ${parameters.detailType}(id: "${detailID}") { id ${fields[parameters.detailType]} } }` :
-    `query { smartVaultActivities(where: { vault: "${address.toLowerCase()}" }) { id vault{id} user detailType blockTimestamp transactionHash minted totalCollateralValue } }`;
+const post = async query => {
   const dataString = JSON.stringify({ query });
 
   const options = {
@@ -41,7 +37,7 @@ const fetchVaultActivityData = async (address, detailID, parameters) => {
   }
 
   return new Promise((resolve, reject) => {
-    const req = https.request('https://api.studio.thegraph.com/query/109184/smart-vault-history/v0.0.10', options, (res) => {
+    const req = https.request('https://api.studio.thegraph.com/query/109184/smart-vault-history/v1.0.5', options, (res) => {
       if (res.statusCode < 200 || res.statusCode > 299) {
         return reject(new Error(`HTTP status code ${res.statusCode}`))
       }
@@ -50,7 +46,7 @@ const fetchVaultActivityData = async (address, detailID, parameters) => {
       res.on('data', (chunk) => body.push(chunk))
       res.on('end', () => {
         const resString = Buffer.concat(body).toString()
-        resolve(resString)
+        resolve(JSON.parse(resString))
       })
     })
 
@@ -70,9 +66,23 @@ const fetchVaultActivityData = async (address, detailID, parameters) => {
 
 const getTransactions = async url => {
   const { address, detailID, queryParams } = vaultTransactionsAddress(url);
-  const parameters = parsedQueryParamsWithDefaults(queryParams);
-  const data = await fetchVaultActivityData(address, detailID, parameters);
-  return JSON.parse(data).data;
+  const { detailType, page, limit } = parsedQueryParamsWithDefaults(queryParams);
+  if (detailType) {
+    const query = `query { ${detailType}(id: "${detailID}") { id ${fields[detailType]} } }`;
+    return (await post(query)).data;
+  } else {
+    const query = `query { smartVaultActivities(where: { vault: "${address.toLowerCase()}" } orderBy: blockTimestamp orderDirection: desc first: ${limit} skip: ${(page - 1) * limit}) {id vault{id} user detailType blockTimestamp blockNumber transactionHash minted totalCollateralValue} smartVault(id: "${address.toLowerCase()}") { activityCount } }`;
+    const { data } = await post(query);
+    if (data) {
+      data.pagination = {
+        currentPage: page,
+        limit: limit,
+        totalRows: data.smartVault.activityCount
+      }
+      delete data.smartVault;
+    }
+    return data;
+  }
 }
 
 module.exports = {
