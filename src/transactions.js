@@ -21,7 +21,9 @@ const fields = {
   usdsBurned: 'amount fee',
   collateralRemoved: 'symbol to amount',
   assetRemoved: 'token to amount',
-  collateralDeposited: 'token from amount'
+  collateralDeposited: 'token from amount',
+  vaultDeployed: 'vaultAddress owner tokenId',
+  vaultLiquidated: '',
 }
 
 const post = async query => {
