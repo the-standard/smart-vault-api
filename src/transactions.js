@@ -77,7 +77,7 @@ const getTransactions = async url => {
       data.pagination = {
         currentPage: page,
         limit: limit,
-        totalRows: data.smartVault.activityCount
+        totalRows: (data.smartVault && data.smartVault.activityCount) || 0
       }
       delete data.smartVault;
     }
