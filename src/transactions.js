@@ -24,6 +24,7 @@ const fields = {
   collateralDeposited: 'token from amount',
   vaultDeployed: 'vaultAddress owner tokenId',
   vaultLiquidated: '',
+  swap: 'tokenIn tokenOut amount fee'
 }
 
 const post = async query => {
@@ -39,7 +40,7 @@ const post = async query => {
   }
 
   return new Promise((resolve, reject) => {
-    const req = https.request('https://api.studio.thegraph.com/query/109184/smart-vault-history/v1.0.8', options, (res) => {
+    const req = https.request('https://api.studio.thegraph.com/query/109184/smart-vault-history/v1.1.7', options, (res) => {
       if (res.statusCode < 200 || res.statusCode > 299) {
         return reject(new Error(`HTTP status code ${res.statusCode}`))
       }
