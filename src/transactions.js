@@ -25,7 +25,8 @@ const fields = {
   vaultDeployed: 'vaultAddress owner tokenId',
   vaultLiquidated: '',
   swap: 'tokenIn tokenOut amountIn feeRate',
-  depositYield: 'tokenIn stablePercentage'
+  depositYield: 'tokenIn stablePercentage',
+  withdrawYield: 'hypervisor tokenOut'
 }
 
 const post = async query => {
@@ -41,7 +42,7 @@ const post = async query => {
   }
 
   return new Promise((resolve, reject) => {
-    const req = https.request('https://api.studio.thegraph.com/query/109184/smart-vault-history/v1.1.5', options, (res) => {
+    const req = https.request('https://api.studio.thegraph.com/query/109184/smart-vault-history/v1.1.6', options, (res) => {
       if (res.statusCode < 200 || res.statusCode > 299) {
         return reject(new Error(`HTTP status code ${res.statusCode}`))
       }
