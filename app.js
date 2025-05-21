@@ -5,7 +5,7 @@ const { getPrices } = require('./src/pricing');
 const { estimateSwap, estimateSwapUrl } = require('./src/swap.js');
 const { getTransactions, vaultTransactionsAddress } = require('./src/transactions.js');
 const { getLiquidationPoolData, liquidationPoolsAddress } = require('./src/liquidationPools.js');
-const { getRedemptionData, getRedemptionMultiData, vaultRedemptionsAddress, getVaultRedemptionData } = require('./src/redemptions.js');
+const { getRedemptionData, getRedemptionsCandidates, vaultRedemptionsAddress, getVaultRedemptionData } = require('./src/redemptions.js');
 const { supplyAddress, getSupplyData } = require('./src/supply.js');
 const { getAtRiskVaults } = require('./src/liquidations.js');
 const port = process.env.PORT || 3000;
@@ -24,26 +24,26 @@ const server = http.createServer(async (req, res) => {
   // if (ip && await limited(ip)) {
   //   res.writeHead(429, headers);
   // } else {
-    res.writeHead(200, headers);
-    if (req.url === '/asset_prices') {
-      res.end(JSON.stringify(await getPrices()));
-    } else if (estimateSwapUrl(req.url)) {
-      res.end(JSON.stringify(await estimateSwap(req.url)))
-    } else if (vaultTransactionsAddress(req.url)) {
-      res.end(JSON.stringify(await getTransactions(req.url)));
-    } else if (liquidationPoolsAddress(req.url)) {
-      res.end(JSON.stringify(await getLiquidationPoolData(req.url)));
-    } else if (req.url === '/redemption') {
-      res.end(JSON.stringify(await getRedemptionData()))
-    } else if (req.url === '/redemption_multi') {
-      res.end(JSON.stringify(await getRedemptionMultiData()))
-    } else if (vaultRedemptionsAddress(req.url)) {
-      res.end(JSON.stringify(await getVaultRedemptionData(req.url)));
-    } else if (supplyAddress(req.url)) {
-      res.end(JSON.stringify(await getSupplyData(req.url)))
-    } else if (req.url === '/liquidations') {
-      res.end(JSON.stringify(await getAtRiskVaults()))
-    }
+  res.writeHead(200, headers);
+  if (req.url === '/asset_prices') {
+    res.end(JSON.stringify(await getPrices()));
+  } else if (estimateSwapUrl(req.url)) {
+    res.end(JSON.stringify(await estimateSwap(req.url)))
+  } else if (vaultTransactionsAddress(req.url)) {
+    res.end(JSON.stringify(await getTransactions(req.url)));
+  } else if (liquidationPoolsAddress(req.url)) {
+    res.end(JSON.stringify(await getLiquidationPoolData(req.url)));
+  } else if (req.url === '/redemption') {
+    res.end(JSON.stringify(await getRedemptionData()))
+  } else if (req.url === '/redemptions') {
+    res.end(JSON.stringify(await getRedemptionsCandidates()))
+  } else if (vaultRedemptionsAddress(req.url)) {
+    res.end(JSON.stringify(await getVaultRedemptionData(req.url)));
+  } else if (supplyAddress(req.url)) {
+    res.end(JSON.stringify(await getSupplyData(req.url)))
+  } else if (req.url === '/liquidations') {
+    res.end(JSON.stringify(await getAtRiskVaults()))
+  }
   // }
   
   res.end();
