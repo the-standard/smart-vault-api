@@ -163,7 +163,7 @@ const managerABI = [
 ];
 
 const getRedemptionData = async _ => {
-  return await redisClient.HGETALL('redemption');
+  return JSON.parse(await redisClient.LINDEX('redemptions', 0));
 };
 
 const vaultRedemptionsAddress = url => {
@@ -185,7 +185,7 @@ const getVaultRedemptionData = async url => {
 }
 
 const getRedemptionsCandidates = async _ => {
-  return (await redisClient.SMEMBERS('redemptions')).map(candidate => JSON.parse(candidate));
+  return (await redisClient.LRANGE('redemptions', 0, -1)).map(candidate => JSON.parse(candidate));
 }
 
 module.exports = {
