@@ -1,6 +1,11 @@
-const { ethers } = require("ethers");
+const https = require('https')
 const Pool = require('pg-pool')
 const { redisClient } = require("./redis");
+const { getDefaultProvider, Contract, BigNumber } = require('ethers');
+const JSBI = require('jsbi');
+const { formatEther, parseUnits, formatUnits } = require('ethers/lib/utils');
+const { getNetwork } = require('./networks');
+const { TickMath, LiquidityMath } = require('@uniswap/v3-sdk');
 
 const { 
   POSTGRES_HOST, POSTGRES_PORT, POSTGRES_STANDARD_DB, POSTGRES_USERNAME, POSTGRES_PASSWORD
@@ -14,153 +19,147 @@ let pool = new Pool({
   port: POSTGRES_PORT
 });
 
-const managerABI = [
+const poolAbi = [
   {
-    "type": "function",
-    "name": "totalSupply",
     "inputs": [],
+    "name": "slot0",
     "outputs": [
       {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
+        "internalType": "uint160",
+        "name": "sqrtPriceX96",
+        "type": "uint160"
+      },
+      {
+        "internalType": "int24",
+        "name": "tick",
+        "type": "int24"
+      },
+      {
+        "internalType": "uint16",
+        "name": "observationIndex",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "observationCardinality",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "observationCardinalityNext",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "feeProtocol",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "unlocked",
+        "type": "bool"
       }
     ],
-    "stateMutability": "view"
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    "type": "function",
-    "name": "vaultData",
-    "inputs": [
-      {
-        "name": "_tokenID",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
+    "inputs": [],
+    "name": "liquidity",
     "outputs": [
       {
+        "internalType": "uint128",
         "name": "",
-        "type": "tuple",
-        "internalType": "struct SmartVaultManagerV6.SmartVaultData",
-        "components": [
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "collateralRate",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "mintFeeRate",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "burnFeeRate",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "status",
-            "type": "tuple",
-            "internalType": "struct ISmartVault.Status",
-            "components": [
-              {
-                "name": "vaultAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "minted",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "maxMintable",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "totalCollateralValue",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "collateral",
-                "type": "tuple[]",
-                "internalType": "struct ISmartVault.Asset[]",
-                "components": [
-                  {
-                    "name": "token",
-                    "type": "tuple",
-                    "internalType": "struct ITokenManager.Token",
-                    "components": [
-                      {
-                        "name": "symbol",
-                        "type": "bytes32",
-                        "internalType": "bytes32"
-                      },
-                      {
-                        "name": "addr",
-                        "type": "address",
-                        "internalType": "address"
-                      },
-                      {
-                        "name": "dec",
-                        "type": "uint8",
-                        "internalType": "uint8"
-                      },
-                      {
-                        "name": "clAddr",
-                        "type": "address",
-                        "internalType": "address"
-                      },
-                      {
-                        "name": "clDec",
-                        "type": "uint8",
-                        "internalType": "uint8"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "amount",
-                    "type": "uint256",
-                    "internalType": "uint256"
-                  },
-                  {
-                    "name": "collateralValue",
-                    "type": "uint256",
-                    "internalType": "uint256"
-                  }
-                ]
-              },
-              {
-                "name": "liquidated",
-                "type": "bool",
-                "internalType": "bool"
-              },
-              {
-                "name": "version",
-                "type": "uint8",
-                "internalType": "uint8"
-              },
-              {
-                "name": "vaultType",
-                "type": "bytes32",
-                "internalType": "bytes32"
-              }
-            ]
-          }
-        ]
+        "type": "uint128"
       }
     ],
-    "stateMutability": "view"
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tickSpacing",
+    "outputs": [
+      {
+        "internalType": "int24",
+        "name": "",
+        "type": "int24"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "int24",
+        "name": "",
+        "type": "int24"
+      }
+    ],
+    "name": "ticks",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "liquidityGross",
+        "type": "uint128"
+      },
+      {
+        "internalType": "int128",
+        "name": "liquidityNet",
+        "type": "int128"
+      },
+      {
+        "internalType": "uint256",
+        "name": "feeGrowthOutside0X128",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "feeGrowthOutside1X128",
+        "type": "uint256"
+      },
+      {
+        "internalType": "int56",
+        "name": "tickCumulativeOutside",
+        "type": "int56"
+      },
+      {
+        "internalType": "uint160",
+        "name": "secondsPerLiquidityOutsideX128",
+        "type": "uint160"
+      },
+      {
+        "internalType": "uint32",
+        "name": "secondsOutside",
+        "type": "uint32"
+      },
+      {
+        "internalType": "bool",
+        "name": "initialized",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
-];
+]
+
+const get = async url => {
+  return new Promise(resolve => {
+    https.get(url, res => {
+      let json = '';
+
+      res.on('data', data => {
+        json += data;
+      });
+
+      res.on('end', _ => {
+        resolve(JSON.parse(json));
+      });
+    });
+  });
+}
 
 const getRedemptionData = async _ => {
   return JSON.parse(await redisClient.LINDEX('redemptions', 0));
@@ -184,8 +183,45 @@ const getVaultRedemptionData = async url => {
   return result;
 }
 
+const getPoolData = async _ => {
+  let usds = JSBI.BigInt(0);
+  const triggerPrice = JSBI.BigInt('78831026366734648999936');
+  const pool = new Contract('0x8DEF4Db6697F4885bA4a3f75e9AdB3cEFCca6D6E', poolAbi, new getDefaultProvider(getNetwork('arbitrum').rpc));
+
+  const [slot0, liquidity, tickSpacing] = await Promise.all([
+    pool.slot0(),
+    pool.liquidity(),
+    pool.tickSpacing(),
+  ]);
+
+  const { tick, sqrtPriceX96 } = slot0;
+  let lowerTick = Math.floor(tick / 60) * 60;
+  let upperSqrt = JSBI.BigInt(sqrtPriceX96);
+  let lowerSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
+  let currentLiquidity = JSBI.BigInt(liquidity.toString())
+  while(JSBI.greaterThan(upperSqrt, triggerPrice)) {
+    const numerator = JSBI.leftShift(JSBI.multiply(currentLiquidity, JSBI.subtract(upperSqrt, lowerSqrt)), JSBI.BigInt(96));
+    const denominator = JSBI.multiply(upperSqrt, lowerSqrt);
+    usds = JSBI.add(usds, JSBI.divide(numerator, denominator));
+    upperSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
+    lowerTick -= tickSpacing;
+    lowerSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
+    if (JSBI.greaterThan(triggerPrice, lowerSqrt)) lowerSqrt = triggerPrice;
+    const { liquidityNet } = await pool.ticks(lowerTick);
+    currentLiquidity = LiquidityMath.addDelta(currentLiquidity, JSBI.BigInt(liquidityNet.toString()))
+  }
+  // scale up by 6 decimals of accuracy (+ 12 decimals because of decimal difference in token pair)
+  const scaledUpDecPrice = BigNumber.from(10).pow(18).mul(sqrtPriceX96.pow(2)).div(BigNumber.from(2).pow(192));
+  return { usdsRemainingToTriggerPrice: formatEther(usds.toString()), usdsUsdcPrice: formatUnits(scaledUpDecPrice, 6) };
+}
+
 const getRedemptionsCandidates = async _ => {
-  return (await redisClient.LRANGE('redemptions', 0, -1)).map(candidate => JSON.parse(candidate));
+  const { usdsRemainingToTriggerPrice, usdsUsdcPrice } = await getPoolData()
+  return {
+    vaults: (await redisClient.LRANGE('redemptions', 0, -1)).map(candidate => JSON.parse(candidate)),
+    usdsUsdcPrice,
+    usdsRemainingToTriggerPrice
+  };
 }
 
 module.exports = {
