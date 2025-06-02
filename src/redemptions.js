@@ -5,7 +5,7 @@ const { getDefaultProvider, Contract, BigNumber } = require('ethers');
 const JSBI = require('jsbi');
 const { formatEther, parseUnits, formatUnits } = require('ethers/lib/utils');
 const { getNetwork } = require('./networks');
-const { TickMath, LiquidityMath } = require('@uniswap/v3-sdk');
+const { TickMath, LiquidityMath, SwapMath } = require('@uniswap/v3-sdk');
 
 const { 
   POSTGRES_HOST, POSTGRES_PORT, POSTGRES_STANDARD_DB, POSTGRES_USERNAME, POSTGRES_PASSWORD
@@ -187,30 +187,29 @@ const getPoolData = async _ => {
   let usds = JSBI.BigInt(0);
   const triggerPrice = JSBI.BigInt('78831026366734648999936');
   const pool = new Contract('0x8DEF4Db6697F4885bA4a3f75e9AdB3cEFCca6D6E', poolAbi, new getDefaultProvider(getNetwork('arbitrum').rpc));
-
+  
   const [slot0, liquidity, tickSpacing] = await Promise.all([
-    pool.slot0(),
-    pool.liquidity(),
-    pool.tickSpacing(),
-  ]);
-
+      pool.slot0(),
+      pool.liquidity(),
+      pool.tickSpacing(),
+    ]);
   const { tick, sqrtPriceX96 } = slot0;
-  let lowerTick = Math.floor(tick / 60) * 60;
-  let upperSqrt = JSBI.BigInt(sqrtPriceX96);
-  let lowerSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
-  let currentLiquidity = JSBI.BigInt(liquidity.toString())
-  while(JSBI.greaterThan(upperSqrt, triggerPrice)) {
-    const numerator = JSBI.leftShift(JSBI.multiply(currentLiquidity, JSBI.subtract(upperSqrt, lowerSqrt)), JSBI.BigInt(96));
-    const denominator = JSBI.multiply(upperSqrt, lowerSqrt);
-    usds = JSBI.add(usds, JSBI.divide(numerator, denominator));
-    upperSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
+  let lowerTick = Math.floor(tick / tickSpacing) * tickSpacing;
+
+  let nextUpperSqrt = JSBI.BigInt(sqrtPriceX96.toString());
+  let currentLiquidity = JSBI.BigInt(liquidity.toString());
+
+  while(JSBI.greaterThan(nextUpperSqrt, triggerPrice)) {
+    let nextLowerSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
+    if (JSBI.lessThan(nextLowerSqrt, triggerPrice)) nextLowerSqrt = triggerPrice;
+    const [ sqrtRatioNextX96, amountIn ] = SwapMath.computeSwapStep(nextUpperSqrt, nextLowerSqrt, currentLiquidity, JSBI.BigInt('10000000000000000000000000000000000000000'), 3000);
+    usds = JSBI.add(usds, amountIn);
+    nextUpperSqrt = sqrtRatioNextX96;
     lowerTick -= tickSpacing;
-    lowerSqrt = TickMath.getSqrtRatioAtTick(lowerTick);
-    if (JSBI.greaterThan(triggerPrice, lowerSqrt)) lowerSqrt = triggerPrice;
     const { liquidityNet } = await pool.ticks(lowerTick);
-    currentLiquidity = LiquidityMath.addDelta(currentLiquidity, JSBI.BigInt(liquidityNet.toString()))
+    currentLiquidity = LiquidityMath.addDelta(currentLiquidity, JSBI.BigInt(liquidityNet.toString()));
   }
-  // scale up by 6 decimals of accuracy (+ 12 decimals because of decimal difference in token pair)
+
   const scaledUpDecPrice = BigNumber.from(10).pow(18).mul(sqrtPriceX96.pow(2)).div(BigNumber.from(2).pow(192));
   return { usdsRemainingToTriggerPrice: formatEther(usds.toString()), usdsUsdcPrice: formatUnits(scaledUpDecPrice, 6) };
 }
